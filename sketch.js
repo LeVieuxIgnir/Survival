@@ -1,12 +1,12 @@
-let PosX = 100;
-let PosY = 100;
+let PosX;
+let PosY;
 
 let d = 20;
 
-let ObstacleX = 300;
-let ObstacleY = 300;
+let ObstacleX = [];
+let ObstacleY = [];
 
-let direction = 2;
+let direction = [];
 let vitesse = 5;
 
 let DistanceX = 10;
@@ -23,114 +23,162 @@ let h_v = 0;
 
 let aLive = true;
 
-let changingX = 0;
-let changingY = 0;
+let changingX = [];
+let changingY= [];
 
 let obstacleSpeed = 0;
 
+let t_restart = 0;
+
+let nbreObstacles = 3; 
+
 function setup() {
+    timer = millis();
     createCanvas(640, 480);
-
+    restart()
 }
 
-function countSeconds() {
 
-    secondes = Math.trunc((millis() / 1000))
-}
 
 function draw() {
-
     if (aLive == true) {
         game();
     } else {
+        showScore()
+        waitRestart()
+    }
+}
 
+
+
+function showScore(){
+    if (aLive === true) {
+        // Temps écoulé depuis le début du programme
+        timer = Math.floor(millis() / 1000);
+        // Temps écoule depuis t_restart
+        timer = timer - t_restart;
+        textSize(60);
+        text(timer, 300, 300);
+        textSize(30);
+    } else {       
+        textSize(48)
+        fill('orange')
+        textFont('Roboto Condensed');
+        text('You Loose', 170, 240)
+        fill('red')
+        text('!', 390, 240)
+        textSize(36)
+        fill('orange')
+        text('Your Score :', 170, 340)
+        fill('red')
+        text(t_restart, 360, 340)
+    }
+}
+
+function keyPressed() {
+    if ((keyCode === 13) && (aLive == true)) {
+        t_restart = Math.floor(millis() / 1000);
+        aLive = false;
+    } else {
+        aLive = true;
+    }
+}
+
+function restart() {
+    PosX = 100;
+    PosY = 100;
+    for (let i=0; i<nbreObstacles; i++){
+        ObstacleX[i] = random(0, 300);
+        ObstacleY[i] = random(0, 300);
+        direction[i] = random(-1 , 1);
+    }
+}
+
+function waitRestart() {
+    if (keyIsDown(ENTER)) {
+        restart();
+        aLive = true;
+    }
+}
+
+
+function showObstacle(i){
+    fill('red')
+    ellipse(ObstacleX[i], ObstacleY[i], d, d);
+    ObstacleX[i] += vitesse * direction[i];
+    if ((ObstacleX[i] > width - d / 2) || (ObstacleX[i] < d / 2)) {
+        direction[i] = -direction[i]; // Changer de direction
     }
 }
 
 function game() {
-    
-    countSeconds()
     noStroke();
     x = width / 2;
     y = height / 2;
-
     background(0);
-    LanceObsctacle()
-    console.log(LanceObsctacle)
     Chronometre()
-    
     updatePositionEllipse();
-   
-
-    
     OutOfScreen()
-    
-    
     fill('white')
-    
-    DistancePlayer()
-    
-
-
-
     ellipse(PosX, PosY, 80, 80)
     
-    fill('orange')
-    
-
-
-    fill('red')
-    
-    ellipse(ObstacleX, ObstacleY, d, d);
-    ObstacleX += vitesse * direction;
-    if ((ObstacleX > width - d / 2) || (ObstacleX < d / 2)) {
-        direction = -direction; // Changer de direction
-
-        
+    for(let i = 0; i<nbreObstacles; i++){
+        LanceObsctacle(i)
+        showObstacle(i); 
+        DistancePlayer(i)
     }
-
 }
-function LanceObsctacle() {
 
-    if (h_v == 1) {
-        if (ObstacleX < 640 && changingX == 0) {
-            ObstacleX += 8;
-        }
 
-        if (ObstacleX >= 640) {
-            changingX = 1;
-        }
+function DistancePlayer(i) {
+    DistanceX = Math.pow(PosX - ObstacleX[i], 2);
+    DistanceY = Math.pow(PosY - ObstacleY[i], 2);
+    Distance = Math.sqrt(DistanceX + DistanceY);
 
-        if (ObstacleX > 10 && changingX == 1) {
-            posObstacleX -= 8;
-        }
-
-        if (ObstacleX <= 10) {
-            changingX = 0;
-        }
-        ellipse(ObstacleX, ObstacleY, 30, 30);
+    if (Distance < 48) {
+        aLive = false;
     }
+}
 
+function LanceObsctacle(i) {
+    if (h_v == 1) {
+        if (ObstacleX[i] < 640 && changingX[i] == 0) {
+            ObstacleX[i] += 8;
+        }
+
+        if (ObstacleX[i] >= 640) {
+            changingX[i] = 1;
+        }
+
+        if (ObstacleX[i] > 10 && changingX[i] == 1) {
+            posObstacleX[i] -= 8;
+        }
+
+        if (ObstacleX[i] <= 10) {
+            changingX[i] = 0;
+        }
+        ellipse(ObstacleX[i], ObstacleY[i], 30, 30);
+    }
 
     if (h_v == 0) {
-        if (ObstacleY < 480 && changingY == 0) {
-            ObstacleY += 8;
+        if (ObstacleY[i] < 480 && changingY[i] == 0) {
+            ObstacleY[i] += 8;
         }
 
-        if (ObstacleY >= 480) {
-            changingY = 1;
+        if (ObstacleY[i] >= 480) {
+            changingY[i] = 1;
         }
 
-        if (ObstacleY > 10 && changingY == 1) {
-            ObstacleY -= 8;
+        if (ObstacleY[i] > 10 && changingY[i] == 1) {
+            ObstacleY[i] -= 8;
         }
 
-        if (ObstacleY <= 10) {
-            changingY = 0;
+        if (ObstacleY[i] <= 10) {
+            changingY[i] = 0;
         }
-
     }
 }
+
 function updatePositionEllipse() {
     if (keyIsDown(LEFT_ARROW)) {
         PosX -= 10;
@@ -187,33 +235,3 @@ function Chronometre() {
     text(timer, 400, 450)
 }
 
-function DistancePlayer() {
-
-    DistanceX = Math.pow(PosX - ObstacleX, 2);
-    DistanceY = Math.pow(PosY - ObstacleY, 2);
-    Distance = Math.sqrt(DistanceX + DistanceY);
-
-    if (Distance < 48) {
-        fill('black');
-
-        textSize(48)
-        fill('white')
-        textFont('Roboto Condensed');
-
-        text('You Loose', 170, 240)
-        fill('red')
-
-        text('!', 390, 240)
-
-        textSize(36)
-
-        fill('white')
-
-        text('Your Score :', 170, 340)
-
-        fill('red')
-
-        text(timer, 360, 340)
-        aLive = false;
-    }
-}
